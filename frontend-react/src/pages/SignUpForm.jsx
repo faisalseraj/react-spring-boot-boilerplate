@@ -8,6 +8,7 @@ import { apiService } from "../services/apiService";
 const SignUpForm = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [cell, setCell] = useState("");
   const [office, setOffice] = useState("");
@@ -23,6 +24,7 @@ const SignUpForm = () => {
     if (
       !firstName ||
       !lastName ||
+      !username ||
       !email ||
       !cell ||
       !office ||
@@ -31,6 +33,13 @@ const SignUpForm = () => {
       !confirmPassword
     ) {
       setError("All fields are required!");
+      return false;
+    }
+
+    // Username validation
+    const usernameRegex = /^[a-z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+      setError("Username can only contain lowercase letters, numbers and underscores.");
       return false;
     }
 
@@ -75,6 +84,7 @@ const SignUpForm = () => {
     const payload = {
       firstName,
       lastName,
+      username,
       email,
       cell,
       office,
@@ -91,7 +101,7 @@ const SignUpForm = () => {
         setTimeout(() => {
           if (response?.user?.role === "ADMIN") {
             navigate("/admin"); // Redirects to /admin-dashboard route
-          } else if (response.user.role === "CABINET_MAKER_INSTALLER") {
+          } else if (response.user.role === "CABINET_MAKER" || response.user.role === "INSTALLER") {
             navigate("/jobs"); // Redirects to /admin-dashboard route
           }
           setLoading(false); // Reset loading state
@@ -108,6 +118,7 @@ const SignUpForm = () => {
   const resetForm = () => {
     setFirstName("");
     setLastName("");
+    setUsername("");
     setEmail("");
     setCell("");
     setOffice("");
@@ -160,6 +171,20 @@ const SignUpForm = () => {
                   placeholder="Enter your last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+
+              {/* Username */}
+              <div className="form-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  className="form-control"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
                 />
               </div>
 
@@ -223,8 +248,8 @@ const SignUpForm = () => {
                   <option value="" disabled>
                     Select your role
                   </option>
-                  <option value="CABINET_MAKER_INSTALLER">Installer</option>
-                  <option value="CABINET_MAKER_INSTALLER">Cabinet Maker</option>
+                  <option value="CABINET_MAKER">Installer</option>
+                  <option value="INSTALLER">Cabinet Maker</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>

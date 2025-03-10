@@ -54,7 +54,7 @@ const LoginForm = () => {
         setTimeout(() => {
           if (response?.user?.role === "ADMIN") {
             navigate("/admin"); // Redirects to /admin-dashboard route
-          } else if (response.user.role === "CABINET_MAKER_INSTALLER") {
+          } else if (response.user.role === "CABINET_MAKER" || response.user.role === "INSTALLER") {
             navigate("/jobs"); // Redirects to /admin-dashboard route
           }
           setLoading(false); // Reset loading state

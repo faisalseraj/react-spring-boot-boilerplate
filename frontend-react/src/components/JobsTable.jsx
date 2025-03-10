@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 
 import { apiService } from "../services/apiService";
 
-function JobsTable({filters, setFilters}) {
+function JobsTable({ filters }) {
   const [jobs, setJobs] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]); // To store filtered jobs
 
-  const [loading, setLoading] = useState(false); // To manage loading state
+  const [loading, setLoading] = useState(true); // To manage loading state
   const [error, setError] = useState(""); // To handle error messages
 
   const deleteJob = async (id) => {
@@ -18,35 +19,91 @@ function JobsTable({filters, setFilters}) {
     }
   };
 
-  const applyFilters = () => {
-    return jobs.filter((job) => {
-      return (
-        (filters.office === "" || job.office === filters.office) &&
-        (filters.installer === "" ||
-          job.installer
-            .toLowerCase()
-            .includes(filters.installer.toLowerCase())) &&
-        (filters.status === "" || job.status === filters.status)
-      );
+  const applyFilters = (filters) => {
+    const filteredJobs = jobs.filter((job) => {
+      const officeMatch =
+        filters.office === "" || job.office === filters.office;
+      const installerMatch =
+        filters.installerName === "" ||
+        job.installerName
+          .toLowerCase()
+          .includes(filters.installerName.toLowerCase());
+      const statusMatch =
+        filters.status === "" || job.status === filters.status;
+
+      return officeMatch && installerMatch && statusMatch;
     });
+    return filteredJobs;
   };
 
-  const updateStatus = (index, newStatus) => {
+  const updateStatus = async (index, newStatus) => {
     const updatedJobs = [...jobs];
-    updatedJobs[index].status = newStatus;
+    const oldJob = updatedJobs[index];
+    const body = { ...oldJob, status: newStatus };
+
+    try {
+      await apiService().updateJob(oldJob.id, body);
+      fetchJobs();
+    } catch (error) {
+      console.error(error);
+      setError("Something went wrong");
+    }
     setJobs(updatedJobs);
   };
 
-  const updateMaterialOrdered = (index, newStatus) => {
-    const updatedJobs = [...jobs];
-    updatedJobs[index].materialsOrdered = newStatus;
-    setJobs(updatedJobs);
+  const updateMaterialOrdered = async (index, newStatus) => {
+    const jobToUpdate = { ...jobs[index] };
+    jobToUpdate.materialOrderStatus =
+      newStatus === "ordered" ? "ordered" : null;
+    jobToUpdate.materialArrivalStatus =
+      newStatus === "ordered" ? jobToUpdate.materialArrivalStatus : null;
+    try {
+      await apiService().updateJob(jobToUpdate.id, jobToUpdate);
+      fetchJobs();
+    } catch (error) {
+      console.error(error);
+      setError("Something went wrong");
+    }
   };
 
-  const updateMaterialArrived = (index, newStatus) => {
-    const updatedJobs = [...jobs];
-    updatedJobs[index].materialsArrived = newStatus;
-    setJobs(updatedJobs);
+  const updateMaterialArrived = async (index, newStatus) => {
+    const jobToUpdate = { ...jobs[index] };
+
+    if (jobToUpdate.materialOrderStatus !== "ordered") {
+      setError("Can't set material as arrived if not ordered");
+      return;
+    } else {
+      jobToUpdate.materialArrivalStatus =
+        newStatus === "arrived" ? "arrived" : null;
+
+      try {
+        await apiService().updateJob(jobToUpdate.id, jobToUpdate);
+        fetchJobs();
+      } catch (error) {
+        console.error(error);
+        setError("Something went wrong");
+      }
+    }
+  };
+
+  const handleFileUpload = async (index, event) => {
+    const file = event.target.files[0];
+    const allowedTypes = ["image/png", "image/jpeg", "image/svg+xml"];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only png, jpg and svg images are allowed");
+      return;
+    }
+
+    try {
+      const response = await apiService().uploadJobImage(jobs[index].id, file);
+      const updatedJobs = [...jobs];
+      updatedJobs[index].image = response.data;
+      setJobs(updatedJobs);
+    } catch (error) {
+      console.error(error);
+      setError("Something went wrong");
+    }
   };
 
   const fetchJobs = async () => {
@@ -63,40 +120,60 @@ function JobsTable({filters, setFilters}) {
   };
 
   useEffect(() => {
-    if (!loading && jobs?.length === 0) {
-      fetchJobs();
+    fetchJobs();
+  }, []);
+
+  useEffect(() => {
+    if (
+      Object.keys(filters).filter((item) => filters[item] !== "").length === 0
+    ) {
+      setJobs(jobs);
+    } else {
+      setFilteredJobs(applyFilters(filters));
     }
-  }, [loading]);
+  }, [filters]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setError(""), 3000);
+    return () => clearTimeout(timer);
+  }, [error]);
 
   const renderTable = (data) => {
-    return jobs.map((job, index) => {
+    return data.map((job, index) => {
       let statusClass = "";
       if (job.status === "To-Do") statusClass = "status-to-do";
       else if (job.status === "In Progress") statusClass = "status-in-progress";
       else if (job.status === "Completed") statusClass = "status-completed";
 
       const materialsOrderedClass =
-        job.materialsOrdered === "Yes" ? "status-yes" : "status-no";
+        job.materialOrderStatus === "ordered" ? "status-yes" : "status-no";
       const materialsArrivedClass =
-        job.materialsArrived === "Yes" ? "status-yes" : "status-no";
+        job.materialArrivalStatus === "arrived" ? "status-yes" : "status-no";
 
       return (
-        <tr key={job.jobNumber}>
+        <tr key={job.jobName}>
           <td>{job.jobNumber}</td>
           <td>{job.jobName}</td>
           <td>{job.numCabinets}</td>
           <td>{job.numUppers}</td>
           <td>{job.numLowers}</td>
-          <td>{job.cabinetMaker}</td>
-          <td>{job.installer}</td>
-          <td>{job.dueDate}</td>
+          <td>{job.cabinetMakerName}</td>
+          <td>{job.installerName}</td>
+          <td>
+            {new Date(job.dueDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </td>
           <td>{job.jobColor}</td>
           <td>{job.office}</td>
           <td>
             <select
+              cl
               value={job.status}
               onChange={(e) => updateStatus(index, e.target.value)}
-              className={statusClass}
+              className={`${statusClass} form-control form-control-sm`}
             >
               <option value="To-Do">To-Do</option>
               <option value="In Progress">In Progress</option>
@@ -105,34 +182,42 @@ function JobsTable({filters, setFilters}) {
           </td>
           <td>
             <select
-              value={job.materialsOrdered}
+              value={job.materialOrderStatus}
               onChange={(e) => updateMaterialOrdered(index, e.target.value)}
-              className={materialsOrderedClass}
+              className={`${materialsOrderedClass} form-control form-control-sm`}
             >
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
+              <option value="">No</option>
+              <option value="ordered">Yes</option>
             </select>
           </td>
           <td>
             <select
-              value={job.materialsArrived}
+              value={job.materialsArrivalStatus}
               onChange={(e) => updateMaterialArrived(index, e.target.value)}
-              className={materialsArrivedClass}
+              className={`${materialsArrivedClass} form-control form-control-sm`}
             >
-              <option value="Yes">Yes</option>
               <option value="No">No</option>
+              <option value="arrived">Yes</option>
             </select>
           </td>
           <td>
-            <input type="file" />
-            {job.photos && (
-              <a href={job.photos} target="_blank" rel="noopener noreferrer">
+            <input
+              type="file"
+              className="form-control form-control-sm"
+              onChange={(e) => handleFileUpload(index, e)}
+            />
+            {job.image && (
+              <a
+                href={`${process.env.REACT_APP_API_BASE_URL}/api/files/${job.image}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 View Photo
               </a>
             )}
           </td>
           <td>
-            <button onClick={() => deleteJob(data.id)}>Delete</button>
+            <button onClick={() => deleteJob(job.id)}>Delete</button>
           </td>
         </tr>
       );
@@ -159,7 +244,9 @@ function JobsTable({filters, setFilters}) {
       </div>
     </div>
   ) : (
-    <>
+    <div>
+      {<div className="error-message">{error}</div>}
+
       <table>
         <thead>
           <tr>
@@ -180,10 +267,16 @@ function JobsTable({filters, setFilters}) {
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>{renderTable(jobs)}</tbody>
+        <tbody>
+          {renderTable(
+            Object.keys(filters).filter((item) => filters[item] !== "")
+              .length === 0
+              ? jobs
+              : filteredJobs
+          )}
+        </tbody>
       </table>
-      {error && <div className="error">{error}</div>}
-    </>
+    </div>
   );
 }
 

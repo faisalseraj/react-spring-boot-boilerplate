@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
-import { LogoutButton } from "../components/logout";
 import { NavigationHeader } from "../components/NavigationHeader";
+import { apiService } from "../services/apiService";
 
 const UpdateProfile = () => {
-  // State to manage input values
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [cell, setCell] = useState("");
@@ -15,55 +13,56 @@ const UpdateProfile = () => {
   const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  // Validate inputs
   const validateInputs = () => {
-    // Validate required fields
     if (!username || !email || !cell || !password) {
       setError("All fields are required.");
       return false;
     }
-
-    // Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email address.");
       return false;
     }
-
-    // Cell phone validation (basic, digits only)
     const phoneRegex = /^[0-9]+$/;
     if (!phoneRegex.test(cell)) {
       setError("Please enter a valid cell phone number (numbers only).");
       return false;
     }
-
-    setError(""); // Clear previous error
+    setError("");
     return true;
   };
 
-  // Handle the form submission
-  const handleUpdateProfile = () => {
-    setSuccess(""); // Clear previous success message
-
+  const handleUpdateProfile = async () => {
+    setSuccess("");
     if (validateInputs()) {
-      // Show modal for confirmation
-      setShowModal(true);
+      try {
+        const response = await apiService().updateProfile({
+          username,
+          email,
+          cell,
+          password,
+          confirmPassword: password,
+        });
+
+        setSuccess("Profile updated successfully!");
+        setUsername(response.user.username);
+        setEmail(response.user.email);
+        setCell(response.user.cell);
+        setShowModal(false);
+      } catch (error) {
+        setError("Failed to update profile.");
+      }
     }
   };
 
-  // Confirm profile update
   const confirmUpdate = () => {
-    setSuccess("Profile updated successfully!");
-    setShowModal(false);
-    resetForm();
+    setShowModal(true);
   };
 
-  // Close modal without updating
   const closeModal = () => {
     setShowModal(false);
   };
 
-  // Reset form fields
   const resetForm = () => {
     setUsername("");
     setEmail("");
@@ -71,13 +70,24 @@ const UpdateProfile = () => {
     setPassword("");
   };
 
+  const init = async () => {
+    try {
+      const response = await apiService().getSelf();
+      setUsername(response.user.username);
+      setEmail(response.user.email);
+      setCell(response.user.cell);
+    } catch (error) {
+      setError("Failed to load your profile.");
+    }
+  };
+
+  React.useEffect(() => {
+    init();
+  }, []);
+
   return (
     <div>
-      {/* Navigation */}
-
       <NavigationHeader showLogout />
-
-      {/* Wrapper for content */}
       <div className="wrapper">
         <header>
           <h1 className="dashboard-headline">Your Profile, Your Way</h1>
@@ -85,10 +95,8 @@ const UpdateProfile = () => {
             Keep your account details up-to-date for seamless communication.
           </h2>
         </header>
-
-        {/* Profile form */}
         <div className="wrapper">
-          <div className="login-container">
+          <div className="login-container p-8">
             <form id="profileForm" className="p-1">
               <div className="form-group">
                 <label htmlFor="username">Username: </label>
@@ -102,7 +110,6 @@ const UpdateProfile = () => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="email">Email: </label>
                 <input
@@ -114,7 +121,6 @@ const UpdateProfile = () => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="cell">Cell #: </label>
                 <input
@@ -126,8 +132,7 @@ const UpdateProfile = () => {
                   required
                 />
               </div>
-
-              <div className="form-group">
+              <div className="form-group ">
                 <label htmlFor="password">New Password: </label>
                 <input
                   type="password"
@@ -138,36 +143,51 @@ const UpdateProfile = () => {
                   required
                 />
               </div>
+              <div
+                style={{
+                  justifyContent: "space-between",
+                  width: "100%",
+                  display: "flex",
+                  marginTop: "16px",
+                }}
+              >
+                <button type="button" onClick={confirmUpdate}>
+                  Update Profile
+                </button>
+                <a href={"/admin"}>
+                  <button>Cancel</button>
+                </a>
+              </div>
 
-              <button type="button" onClick={handleUpdateProfile}>
-                Update Profile
-              </button>
-
-              {/* Error and Success messages */}
-              {error && <p className="error">{error}</p>}
-              {success && <p className="success">{success}</p>}
-
-              <button onClick={() => (window.location.href = "/jobs")}>
-                Cancel
-              </button>
+              {error && <p className="error-message">{error}</p>}
+              {success && <p className="success-message">{success}</p>}
             </form>
           </div>
         </div>
-
-        {/* Confirmation Modal */}
         {showModal && (
-          <div id="confirmationModal" className="modal">
-            <h3>Are you sure you want to update your profile?</h3>
-            <button onClick={confirmUpdate}>Confirm</button>
-            <button onClick={closeModal}>Cancel</button>
-          </div>
+          <dialog className="modal-container" open>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h2>Profile Upload Confirmation</h2>
+                <span className="close" onClick={closeModal}>
+                  &times;
+                </span>
+              </div>
+              <div className="modal-body">
+                <p className="confirmation-message">
+                  Your profile has been updated successfully!
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button className="button" onClick={handleUpdateProfile}>
+                  OK
+                </button>
+              </div>
+            </div>
+          </dialog>
         )}
-
-        {/* Backdrop for modal */}
         {showModal && <div id="backdrop" className="backdrop"></div>}
       </div>
-
-      {/* Footer */}
       <Footer />
     </div>
   );

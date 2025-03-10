@@ -38,11 +38,14 @@ export const NavigationHeader = ({ showLogout }) => {
               {" "}
               <button> Create Employee</button>
             </Link>
-            <Link to="/update-profile">
-              {" "}
-              <button> Update Profile</button>
-            </Link>
           </>
+        ) : null}
+
+        {isLoggedIn ? (
+          <Link to="/update-profile">
+            {" "}
+            <button> Update Profile</button>
+          </Link>
         ) : null}
       </div>
       {showLogout ? <button onClick={onLogout}>Logout</button> : null}

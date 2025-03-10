@@ -8,12 +8,12 @@ import Table from "../components/JobsTable";
 const AdminDashboard = () => {
   const [filters, setFilters] = useState({
     office: "",
-    installer: "",
+    installerName: "",
     status: "",
   });
 
   const clearFilters = () => {
-    setFilters({ office: "", installer: "", status: "" });
+    setFilters({ office: "", installerName: "", status: "" });
   };
 
   return (
@@ -28,7 +28,7 @@ const AdminDashboard = () => {
           clearFilters={clearFilters}
         />
 
-        <Table />
+        <Table filters={filters} />
       </div>
 
       <Footer />

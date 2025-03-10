@@ -1,10 +1,8 @@
 import axios from "axios";
 
 export const apiService = () => {
-  // Authentication
   const API_BASE_URL = `${process.env.REACT_APP_API_BASE_URL}/api`;
 
-  // Create axios instances
   const publicAxios = axios.create({
     baseURL: API_BASE_URL,
     headers: { "Content-Type": "application/json" },
@@ -18,7 +16,6 @@ export const apiService = () => {
     },
   });
 
-  // Response interceptor to handle errors
   authAxios.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -69,10 +66,8 @@ export const apiService = () => {
       }
     },
 
-
     updateEmployee: async (employeeData) => {
       try {
-        debugger
         const response = await authAxios.patch("/user/updateEmployee", employeeData);
         if (!response?.data) {
           throw new Error({ error: { response } });
@@ -80,12 +75,10 @@ export const apiService = () => {
         return response.data;
       } catch (error) {
         throw new Error(
-          error.response?.data?.message || "Failed to create employee"
+          error.response?.data?.message || "Failed to update employee"
         );
       }
     },
-
-
 
     getAllEmployees: async () => {
       try {
@@ -104,7 +97,6 @@ export const apiService = () => {
     register: async (userData) => {
       try {
         const response = await publicAxios.post("/user/register", userData);
-        console.log(response, "response")
         if (!response?.data?.token) {
           throw new Error({ error: { response } });
         }
@@ -112,13 +104,10 @@ export const apiService = () => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         return response.data;
       } catch (error) {
-        console.log(error, "eeee", error.data)
-       debugger
         throw new Error(error.response?.data?.message || "Registration failed");
       }
     },
 
-    // Jobs
     createJob: async (jobData) => {
       try {
         const response = await authAxios.post("/jobs", jobData);
@@ -132,7 +121,7 @@ export const apiService = () => {
 
     deleteJob: async (jobId) => {
       try {
-        const response = await authAxios.delete("/jobs", jobId);
+        const response = await authAxios.delete(`/jobs/${jobId}`);
         return response.data;
       } catch (error) {
         throw new Error(
@@ -159,6 +148,75 @@ export const apiService = () => {
       } catch (error) {
         throw new Error(
           error.response?.data?.message || "Failed to update job"
+        );
+      }
+    },
+
+    uploadJobImage: async (jobId, imageFile) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
+        const response = await authAxios.post(`/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (response.data) {
+          await apiService().updateJobImage(jobId, response.data);
+        }
+
+        return response.data;
+      } catch (error) {
+        throw new Error(
+          error.response?.data?.message || "Failed to upload job image"
+        );
+      }
+    },
+
+    updateJobImage: async (jobId, imageUrl) => {
+      try {
+        const response = await authAxios.post(`/jobs/${jobId}/uploadImage`, {imageUrl});
+
+        return response.data;
+      } catch (error) {
+        throw new Error(
+          error.response?.data?.message || "Failed to upload job image"
+        );
+      }
+    },
+
+    getJobImage:  (imageUrl) => {
+      try {
+        return `${API_BASE_URL}/files/1741617713456_a_unique_logo_for_a_platform_called(1).jpeg`
+      } catch (error) {
+        return ""
+      }
+    },
+
+    getSelf: async () => {
+      try {
+        const response = await authAxios.get("/user/getSelf");
+        return response.data;
+      } catch (error) {
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch user data"
+        );
+      }
+    },
+
+    updateProfile: async (userData) => {
+      try {
+        const response = await authAxios.patch("/user/updateProfile", userData);
+        if (!response?.data) {
+          throw new Error({ error: { response } });
+        }
+        localStorage.setItem("user", JSON.stringify(response.data));
+        return response.data;
+      } catch (error) {
+        throw new Error(
+          error.response?.data?.message || "Failed to update user profile"
         );
       }
     },

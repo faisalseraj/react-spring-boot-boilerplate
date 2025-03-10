@@ -7,11 +7,11 @@ const Filter = ({ filters, handleFilterChange, clearFilters }) => {
         className="form-inline bg-light p-3 rounded shadow-sm"
       >
         <div className="form-group mb-2">
-          <label htmlFor="filterOffice" className="mr-2 font-weight-bold">
+          <label htmlFor="office" className="mr-2 font-weight-bold">
             Filter by Office:
           </label>
           <select
-            id="filterOffice"
+            id="office"
             className="form-control form-control-sm"
             value={filters.office}
             onChange={handleFilterChange}
@@ -24,26 +24,26 @@ const Filter = ({ filters, handleFilterChange, clearFilters }) => {
         </div>
 
         <div className="form-group mx-3 mb-2">
-          <label htmlFor="filterInstaller" className="mr-2 font-weight-bold">
+          <label htmlFor="installerName" className="mr-2 font-weight-bold">
             Filter by Installer:
           </label>
           <input
             type="text"
-            id="filterInstaller"
+            id="installerName"
             className="form-control form-control-sm"
-            value={filters.installer}
+            value={filters.installerName}
             placeholder="Installer Name"
             onChange={handleFilterChange}
           />
         </div>
 
         <div className="form-group mb-2">
-          <label htmlFor="filterStatus" className="mr-2 font-weight-bold">
+          <label htmlFor="status" className="mr-2 font-weight-bold">
             Filter by Status:
           </label>
           <select
             className="form-control form-control-sm"
-            id="filterStatus"
+            id="status"
             value={filters.status}
             onChange={handleFilterChange}
           >
@@ -59,7 +59,7 @@ const Filter = ({ filters, handleFilterChange, clearFilters }) => {
           <button
             type="button"
             className="btn btn-warning btn-sm"
-            onClick={clearFilters}
+            onClick={() =>{clearFilters()}}
           >
             Clear Filters
           </button>
@@ -77,11 +77,11 @@ export const OfficeFilter = ({ filters, handleFilterChange, clearFilters }) => {
         className="form-inline bg-light p-3 rounded shadow-sm"
       >
         <div className="form-group mb-2">
-          <label htmlFor="filterOffice" className="mr-2 font-weight-bold">
+          <label htmlFor="office" className="mr-2 font-weight-bold">
             Filter by Office:
           </label>
           <select
-            id="filterOffice"
+            id="office"
             className="form-control form-control-sm"
             value={filters.office}
             onChange={handleFilterChange}

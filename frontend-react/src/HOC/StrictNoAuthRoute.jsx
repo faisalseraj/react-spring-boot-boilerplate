@@ -7,7 +7,7 @@ const StrictNoAuthRoute = () => {
 
   if (user?.role === "ADMIN") {
     return <Navigate to="/admin" />;
-  } else if (user?.role === "CABINET_MAKER_INSTALLER") {
+  } else if (user?.role === "CABINET_MAKER" || user?.role === "INSTALLER") {
     return <Navigate to="/jobs" />;
   }
 

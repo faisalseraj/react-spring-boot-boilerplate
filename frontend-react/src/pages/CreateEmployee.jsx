@@ -21,8 +21,6 @@ const CreateEmployee = () => {
 
   const [filters, setFilters] = useState({
     office: "",
-    installer: "",
-    status: "",
   });
   const [error, setError] = useState("");
   const [editIndex, setEditIndex] = useState(null);
@@ -100,6 +98,8 @@ const CreateEmployee = () => {
 
     try {
       await apiService().createEmployee(newEmployee);
+      fetchAllEmployees();
+
       setEmployees([...employees, newEmployee]);
       clearForm();
     } catch (error) {
@@ -138,8 +138,10 @@ const CreateEmployee = () => {
       password,
     };
     setEmployees(updatedEmployees);
-    clearForm();
+    fetchAllEmployees();
+
     setEditIndex(null);
+    clearForm();
   };
 
   const clearForm = () => {
@@ -171,17 +173,15 @@ const CreateEmployee = () => {
     setEditIndex(index);
   };
 
-  const filterEmployees = (office) => {
+  const filterEmployees = () => {
     return employees.filter((employee) =>
-      office ? employee.office === office : true
+      filters.office ? employee.office == filters.office : true
     );
   };
 
-  const offices = Array.from(
-    new Set(employees.map((employee) => employee.office))
-  ).sort();
-
-  const clearFilters = () => {};
+  const clearFilters = () => {
+    setFilters({ office: "" });
+  };
 
   return (
     <>
@@ -287,8 +287,8 @@ const CreateEmployee = () => {
                   required
                 >
                   <option value="">Select Role</option>
-                  <option value="CABINET_MAKER_INSTALLER">Cabinet Maker</option>
-                  <option value="CABINET_MAKER_INSTALLER">Installer</option>
+                  <option value="CABINET_MAKER">Cabinet Maker</option>
+                  <option value="INSTALLER">Installer</option>
                 </select>
               </div>
               <div className="form-group">
@@ -311,10 +311,11 @@ const CreateEmployee = () => {
 
               <div className="form-actions">
                 <div class="mt-24 d-flex justify-content-between align-items-center">
-                  <button type="button" onClick={addEmployee}>
-                    Add Employee
-                  </button>
-                  {editIndex !== null && (
+                  {editIndex === null ? (
+                    <button type="button" onClick={addEmployee}>
+                      Add Employee
+                    </button>
+                  ) : (
                     <button type="button" onClick={updateEmployee}>
                       Update Employee
                     </button>

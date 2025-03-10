@@ -24,6 +24,7 @@
 
 # IDE configuration files
 /.idea/
+/.vscode/
 /.eclipse/
 /.netbeans/
 /intellij/

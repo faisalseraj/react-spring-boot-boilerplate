@@ -7,13 +7,18 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface JobRepo extends JpaRepository<Job, Long> {
+    List<Job> findByCabinetMakerId(Long id);
+    List<Job> findByInstallerId(Long id);
+
     @Query("SELECT j FROM Job j WHERE " +
             "(:status IS NULL OR j.status = :status) AND " +
             "(:installerId IS NULL OR j.installer.id = :installerId) AND " +
-            "(:materialStatus IS NULL OR j.materialStatus = :materialStatus) AND " +
+            "(:materialOrderStatus IS NULL OR j.materialOrderStatus = :materialOrderStatus) AND " +
+            "(:materialArrivalStatus IS NULL OR j.materialArrivalStatus = :materialArrivalStatus) AND " +
             "(:office IS NULL OR j.office = :office)")
     List<Job> findByFilters(@Param("status") String status,
                            @Param("installerId") Long installerId,
-                           @Param("materialStatus") String materialStatus,
+                           @Param("materialOrderStatus") String materialOrderStatus,
+                           @Param("materialArrivalStatus") String materialArrivalStatus,
                            @Param("office") String office);
 }

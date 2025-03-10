@@ -11,6 +11,7 @@ public class UserRequest {
     private String office;
     private String role;
     private String password;
+    private String username;
     private String confirmPassword;
 
     public String getId() {
@@ -27,6 +28,10 @@ public class UserRequest {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getCell() {

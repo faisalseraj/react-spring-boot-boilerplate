@@ -34,11 +34,12 @@ public class JobService {
         return mapEntityToResponse(jobRepo.save(job));
     }
 
-    public JobResponse updateJobStatus(Long jobId, String status, String materialStatus) throws Exception {
+    public JobResponse updateJobStatus(Long jobId, String status, String materialOrderStatus, String materialArrivalStatus) throws Exception {
         Job job = jobRepo.findById(jobId)
                 .orElseThrow(() -> new NotFoundException("Job not found"));
         job.setStatus(status);
-        job.setMaterialStatus(materialStatus);
+        job.setMaterialOrderStatus(materialOrderStatus);
+        job.setMaterialArrivalStatus(materialArrivalStatus);
         return mapEntityToResponse(jobRepo.save(job));
     }
 
@@ -48,8 +49,14 @@ public class JobService {
         jobRepo.delete(job);
     }
 
+    public JobResponse updateJobImage(Long jobId, String image) throws Exception {
+        Job job = jobRepo.findById(jobId)
+                .orElseThrow(() -> new NotFoundException("Job not found"));
+        job.setImage(image);
+        return mapEntityToResponse(jobRepo.save(job));
+    }
+
     private void mapRequestToEntity(JobRequest request, Job job) throws Exception {
-        // Map all fields from request to entity
         job.setJobNumber(request.getJobNumber());
         job.setJobName(request.getJobName());
         job.setNumCabinets(request.getNumCabinets());
@@ -62,21 +69,31 @@ public class JobService {
         job.setDueDate(request.getDueDate());
         job.setJobColor(request.getJobColor());
         job.setOffice(request.getOffice());
+        job.setStatus(request.getStatus());
+        job.setMaterialOrderStatus(request.getMaterialOrderStatus());
+        job.setMaterialArrivalStatus(request.getMaterialArrivalStatus());
     }
 
     private JobResponse mapEntityToResponse(Job job) {
         JobResponse response = new JobResponse();
-        // Map all fields from entity to response
         response.setId(job.getId());
+        response.setJobNumber(job.getJobNumber());
+        response.setInstallerId(job.getInstaller().getId());
+        response.setCabinetMakerId(job.getCabinetMaker().getId());
         response.setJobNumber(job.getJobNumber());
         response.setJobName(job.getJobName());
         response.setStatus(job.getStatus());
-        response.setMaterialStatus(job.getMaterialStatus());
+        response.setNumCabinets(job.getNumCabinets());
+        response.setNumLowers(job.getNumLowers());
+        response.setNumUppers(job.getNumUppers());
+        response.setMaterialOrderStatus(job.getMaterialOrderStatus());
+        response.setMaterialArrivalStatus(job.getMaterialArrivalStatus());
         response.setCabinetMakerName(job.getCabinetMaker().getFirstName() + " " + job.getCabinetMaker().getLastName());
         response.setInstallerName(job.getInstaller().getFirstName() + " " + job.getInstaller().getLastName());
         response.setDueDate(job.getDueDate());
         response.setOffice(job.getOffice());
         response.setJobColor(job.getJobColor());
+        response.setImage(job.getImage());
         return response;
     }
 
@@ -86,9 +103,20 @@ public class JobService {
                 .collect(Collectors.toList());
     }
 
-    public List<JobResponse> filterJobs(String status, Long installerId, String materialStatus, String office) {
-        // Implement filtering logic using repository methods
-        return jobRepo.findByFilters(status, installerId, materialStatus, office).stream()
+    public List<JobResponse> filterJobs(String status, Long installerId, String materialOrderStatus, String materialArrivalStatus, String office) {
+        return jobRepo.findByFilters(status, installerId, materialOrderStatus, materialArrivalStatus, office).stream()
+                .map(this::mapEntityToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<JobResponse> getJobsByCabinetMakerId(Long id) {
+        return jobRepo.findByCabinetMakerId(id).stream()
+                .map(this::mapEntityToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<JobResponse> getJobsByInstallerId(Long id) {
+        return jobRepo.findByInstallerId(id).stream()
                 .map(this::mapEntityToResponse)
                 .collect(Collectors.toList());
     }

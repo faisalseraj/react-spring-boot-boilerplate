@@ -19,46 +19,33 @@ import java.nio.file.AccessDeniedException;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    // @Override
-    // public void commence(HttpServletRequest request,
-    // HttpServletResponse response,
-    // AuthenticationException authException) throws IOException {
-    // response.setContentType("application/json");
-    // response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    // response.getWriter().write("""
-    // {
-    // "status": 401,
-    // "message": "Access Denied: Authentication required"
-    // }
-    // """);
-    // }
-
     @Override
     public void commence(HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException authException) throws IOException {
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException {
         logger.info("authException :::" + authException.toString());
-        if (authException.getCause() instanceof AccessDeniedException) {
-            // Token is present but with a different role
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // Set status to 403 Forbidden
-            response.getWriter().write("""
-                    {
-                        "status": 403,
-                        "message": "Access Denied: Insufficient privileges for this operation"
-                    }
-                    """);
-        } else if (authException instanceof InsufficientAuthenticationException) {
-            // No token or invalid token
+        response.setContentType("application/json");
+
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("""
                     {
                         "status": 401,
-                        "message": "Access Denied: Invalid or missing authentication token"
+                        "message": "Access Denied: Token not available"
+                    }
+                    """);
+        } else if (authException instanceof InsufficientAuthenticationException) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("""
+                    {
+                        "status": 403,
+                        "message": "Access Denied: Full authentication is required to access this resource"
                     }
                     """);
         } else {
-            // Other types of authentication exceptions
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("""
                     {
                         "status": 401,

@@ -27,7 +27,9 @@ public class Job {
     private String jobColor;
     private String office;
     private String status;
-    private String materialStatus;
+    private String materialOrderStatus;
+    private String materialArrivalStatus;
+    private String image;
 
     // Getters
     public Long getId() {
@@ -78,8 +80,16 @@ public class Job {
         return status;
     }
 
-    public String getMaterialStatus() {
-        return materialStatus;
+    public String getMaterialOrderStatus() {
+        return materialOrderStatus;
+    }
+
+    public String getMaterialArrivalStatus() {
+        return materialArrivalStatus;
+    }
+
+    public String getImage() {
+        return image;
     }
 
     // Setters
@@ -131,7 +141,15 @@ public class Job {
         this.status = status;
     }
 
-    public void setMaterialStatus(String materialStatus) {
-        this.materialStatus = materialStatus;
+    public void setMaterialOrderStatus(String materialOrderStatus) {
+        this.materialOrderStatus = materialOrderStatus;
+    }
+
+    public void setMaterialArrivalStatus(String materialArrivalStatus) {
+        this.materialArrivalStatus = materialArrivalStatus;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

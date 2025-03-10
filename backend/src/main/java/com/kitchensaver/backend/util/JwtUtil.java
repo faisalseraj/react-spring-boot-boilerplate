@@ -47,11 +47,12 @@ public class JwtUtil {
 
     // @PostConstruct
 
-    public static String generateToken(String username, String role) {
+    public static String generateToken(String username, String role, Long id) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withSubject(username)
                 .withClaim("role", role)
+                .withClaim("id", id)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
                 .sign(algorithm);
@@ -77,5 +78,15 @@ public class JwtUtil {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         JWTVerifier verifier = JWT.require(algorithm).build();
         return verifier.verify(token);
+    }
+
+    public static DecodedJWT decodeToken(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+        JWTVerifier verifier = JWT.require(algorithm).build();
+        return verifier.verify(token);
+    }
+
+    public static Long getUserIdByDecodedToken(DecodedJWT decodedJWT) {
+        return Long.parseLong(decodedJWT.getClaim("id").asString());
     }
 }

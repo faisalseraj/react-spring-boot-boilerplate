@@ -7,12 +7,19 @@ public class JobResponse {
     private String jobNumber;
     private String jobName;
     private String status;
-    private String materialStatus;
+    private int numCabinets;
+    private int numUppers;
+    private int numLowers;
+    private Long installerId;
+    private Long cabinetMakerId;
+    private String materialOrderStatus;
+    private String materialArrivalStatus;
     private String cabinetMakerName;
     private String installerName;
     private Date dueDate;
     private String office;
     private String jobColor;
+    private String image;
 
     // No-arg constructor
     public JobResponse() {
@@ -22,17 +29,28 @@ public class JobResponse {
     }
 
     // All-arg constructor
-    public JobResponse(Long id, String jobNumber, String jobName, String status, String materialStatus, String cabinetMakerName, String installerName, Date dueDate, String office, String jobColor) {
+    public JobResponse(Long id, String jobNumber, String jobName, String status, String materialOrderStatus, String materialArrivalStatus, String cabinetMakerName, String installerName, Date dueDate, String office, String jobColor, Long installerId, Long cabinetMakerId, 
+     int numCabinets,
+     int numUppers,
+     int numLowers, String image) {
         this.id = id;
         this.jobNumber = jobNumber;
         this.jobName = jobName;
         this.status = status;
-        this.materialStatus = materialStatus;
+        this.materialOrderStatus = materialOrderStatus;
+        this.materialArrivalStatus = materialArrivalStatus;
+        this.installerId = installerId;
+        this.cabinetMakerId = cabinetMakerId;
+        this.materialArrivalStatus = materialArrivalStatus;
         this.cabinetMakerName = cabinetMakerName;
         this.installerName = installerName;
         this.dueDate = dueDate;
         this.office = office;
+        this.numCabinets = numCabinets;
+        this.numUppers = numUppers;
+        this.numLowers = numLowers;
         this.jobColor = jobColor;
+        this.image = image;
     }
 
     // Getters
@@ -52,8 +70,12 @@ public class JobResponse {
         return status;
     }
 
-    public String getMaterialStatus() {
-        return materialStatus;
+    public String getMaterialOrderStatus() {
+        return materialOrderStatus;
+    }
+
+    public String getMaterialArrivalStatus() {
+        return materialArrivalStatus;
     }
 
     public String getCabinetMakerName() {
@@ -72,8 +94,32 @@ public class JobResponse {
         return office;
     }
 
+    public Long getInstallerId() {
+        return installerId;
+    }
+
+    public Long getCabinetMakerId() {
+        return cabinetMakerId;
+    }
+    
     public String getJobColor() {
         return jobColor;
+    }
+    
+    public int getNumCabinets() {
+        return numCabinets;
+    }
+    
+    public int getNumUppers() {
+        return numUppers;
+    }
+    
+    public int getNumLowers() {
+        return numLowers;
+    }
+    
+    public String getImage() {
+        return image;
     }
 
     // Setters
@@ -93,8 +139,12 @@ public class JobResponse {
         this.status = status;
     }
 
-    public void setMaterialStatus(String materialStatus) {
-        this.materialStatus = materialStatus;
+    public void setMaterialOrderStatus(String materialOrderStatus) {
+        this.materialOrderStatus = materialOrderStatus;
+    }
+
+    public void setMaterialArrivalStatus(String materialArrivalStatus) {
+        this.materialArrivalStatus = materialArrivalStatus;
     }
 
     public void setCabinetMakerName(String cabinetMakerName) {
@@ -116,4 +166,29 @@ public class JobResponse {
     public void setJobColor(String jobColor) {
         this.jobColor = jobColor;
     }
+
+    public void setInstallerId(Long installerId) {
+        this.installerId = installerId;
+    }
+    
+    public void setCabinetMakerId(Long cabinetMakerId) {
+        this.cabinetMakerId = cabinetMakerId;
+    }
+
+    public void setNumCabinets(int numCabinets) {
+        this.numCabinets = numCabinets;
+    }
+    
+    public void setNumUppers(int numUppers) {
+        this.numUppers = numUppers;
+    }
+    
+    public void setNumLowers(int numLowers) {
+        this.numLowers = numLowers;
+    }
+    
+    public void setImage(String image) {
+        this.image = image;
+    }
+
 }

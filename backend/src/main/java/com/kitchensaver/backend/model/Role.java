@@ -7,5 +7,6 @@ public enum Role {
     ADMIN,
 
     // Cabinet Maker Installer role with specific access
-    CABINET_MAKER_INSTALLER
+    CABINET_MAKER,
+    INSTALLER
 }

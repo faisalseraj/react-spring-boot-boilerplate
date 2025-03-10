@@ -19,6 +19,14 @@ public interface UserRepo extends JpaRepository<Users, Long> {
     Optional<Users> findByEmail(String email);
 
     /**
+     * Method to find a user by their username.
+     *
+     * @param username The user's username.
+     * @return The user if found, or nothing if not found.
+     */
+    Optional<Users> findByUsername(String username);
+
+    /**
      * Method to find all users who are not of ADMIN role.
      *
      * @param role The role to exclude.

@@ -1,21 +1,29 @@
 package com.kitchensaver.backend.Service;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.kitchensaver.backend.DTO.LoginRequest;
 import com.kitchensaver.backend.DTO.UserRequest;
 import com.kitchensaver.backend.DTO.UserResponse;
 import com.kitchensaver.backend.Exceptions.EmailAlreadyExistsException;
 import com.kitchensaver.backend.Exceptions.InvalidCredentialsException;
 import com.kitchensaver.backend.Exceptions.InvalidRequestException;
+import com.kitchensaver.backend.Exceptions.UsernameAlreadyExistsException;
 import com.kitchensaver.backend.model.Role;
 import com.kitchensaver.backend.model.Users;
 import com.kitchensaver.backend.Repo.UserRepo;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+
 import com.kitchensaver.backend.util.JwtUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +57,11 @@ public class UserService implements UserDetailsService {
                 throw new EmailAlreadyExistsException("Email already exists!");
             }
 
+            // Check if username already exists in the database
+            if (userRepo.findByUsername(request.getUsername()).isPresent()) {
+                throw new UsernameAlreadyExistsException("Username already exists!");
+            }
+
             // Validate input fields
             if (request.getFirstName() == null || request.getFirstName().isEmpty()) {
                 throw new InvalidRequestException("First name is required!");
@@ -69,11 +82,16 @@ public class UserService implements UserDetailsService {
                 throw new InvalidRequestException("Role is required!");
             }
 
+            if (request.getUsername() == null || request.getUsername().isEmpty()) {
+                throw new InvalidRequestException("Username is required!");
+            }
+
             // Create a new user object with the details from the request
             Users user = new Users();
             user.setFirstName(request.getFirstName());
             user.setLastName(request.getLastName());
             user.setEmail(request.getEmail());
+            user.setUsername(request.getUsername());
             user.setCell(request.getCell());
             user.setOffice(request.getOffice());
 
@@ -81,7 +99,7 @@ public class UserService implements UserDetailsService {
             try {
                 user.setRole(Role.valueOf(request.getRole().toUpperCase())); // Convert the role to uppercase and set it
             } catch (IllegalArgumentException e) {
-                throw new InvalidRequestException("Invalid role! Allowed values: ADMIN, CABINET_MAKER_INSTALLER");
+                throw new InvalidRequestException("Invalid role! Allowed values: ADMIN, CABINET_MAKER, INSTALLER");
             }
 
             // Encrypt the password before saving it
@@ -89,8 +107,9 @@ public class UserService implements UserDetailsService {
 
             // Save the new user to the database
             userRepo.save(user);
-            String token = JwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
+            String token = JwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
+            user.removePassword();
             // Generate JWT token
 
             return new UserResponse("User registered successfully", token, user);
@@ -124,7 +143,8 @@ public class UserService implements UserDetailsService {
                 user.setLastName(request.getLastName());
             }
             if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-                if (userRepo.findByEmail(request.getEmail()).isPresent() && userRepo.findByEmail(request.getEmail()).get().getId() != user.getId()) {
+                if (userRepo.findByEmail(request.getEmail()).isPresent()
+                        && userRepo.findByEmail(request.getEmail()).get().getId() != user.getId()) {
                     throw new EmailAlreadyExistsException("Email already exists!");
                 }
                 user.setEmail(request.getEmail());
@@ -137,9 +157,10 @@ public class UserService implements UserDetailsService {
             }
             if (request.getRole() != null && !request.getRole().isEmpty()) {
                 try {
-                    user.setRole(Role.valueOf(request.getRole().toUpperCase())); // Convert the role to uppercase and set it
+                    user.setRole(Role.valueOf(request.getRole().toUpperCase())); // Convert the role to uppercase and
+                                                                                 // set it
                 } catch (IllegalArgumentException e) {
-                    throw new InvalidRequestException("Invalid role! Allowed values: ADMIN, CABINET_MAKER_INSTALLER");
+                    throw new InvalidRequestException("Invalid role! Allowed values: ADMIN, CABINET_MAKER, INSTALLER");
                 }
             }
 
@@ -183,7 +204,7 @@ public class UserService implements UserDetailsService {
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 throw new InvalidCredentialsException("Invalid credentials!");
             }
-            String token = JwtUtil.generateToken(user.getEmail(), user.getRole().name());
+            String token = JwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
             return new UserResponse("User login successfully", token, user);
 
@@ -201,7 +222,6 @@ public class UserService implements UserDetailsService {
         List<Users> users = userRepo.findAllByRoleNot(Role.ADMIN);
 
         // Map the list of users to user responses
-       
 
         return users;
     }
@@ -213,13 +233,13 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Users user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
         return org.springframework.security.core.userdetails.User
-            .withUsername(user.getEmail())
-            .password(user.getPassword())
-            .roles(user.getRole().name())
-            .build();
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole().name())
+                .build();
     }
 
     public UserResponse updateProfile(UserRequest request) {
@@ -261,4 +281,42 @@ public class UserService implements UserDetailsService {
             return new UserResponse(e.getMessage(), "");
         }
     }
+
+    public UserResponse getSelf(String email) {
+        try {
+            // Find the user by the email
+            Optional<Users> userOptional = userRepo.findByEmail(email);
+
+            // If the user is not found, return a message
+            if (userOptional.isEmpty()) {
+                throw new InvalidRequestException("User not found!");
+            }
+
+            // Return the user response
+            return new UserResponse("User found successfully", "", userOptional.get());
+
+        } catch (InvalidRequestException e) {
+            return new UserResponse(e.getMessage(), "");
+        } catch (Exception e) {
+            return new UserResponse(e.getMessage(), "");
+        }
+    }
+
+
+    public String getEmailFromToken(HttpServletRequest httpServletRequest) {
+        try {
+            // Retrieves the JWT token from the Authorization header
+            String token = httpServletRequest.getHeader("Authorization").replace("Bearer ", "");
+
+            // Decodes the JWT token to get the email
+            DecodedJWT decodedJWT = JwtUtil.verifyToken(token);
+            String email = decodedJWT.getSubject();
+
+            // Returns the email in the response
+            return email;
+        } catch (Exception e) {
+            return "User not found";
+        }
+    }
+    
 }

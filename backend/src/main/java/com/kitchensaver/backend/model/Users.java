@@ -25,6 +25,9 @@ public class Users {
     private String cell;
 
     @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
     private String office;
 
     @Enumerated(EnumType.STRING) // Store role as a string
@@ -65,8 +68,19 @@ public class Users {
         return email;
     }
 
+   
+
     public void setEmail(String email) {
         this.email = email;
+    }
+
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getCell() {
@@ -94,6 +108,10 @@ public class Users {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void removePassword() {
+        this.password = "";
     }
 
     // This checks if two users are the same by comparing their IDs

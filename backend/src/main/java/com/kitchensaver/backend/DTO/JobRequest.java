@@ -13,10 +13,17 @@ public class JobRequest {
     private Date dueDate;
     private String jobColor;
     private String office;
+    private String status;
+    private String materialOrderStatus;
+    private String materialArrivalStatus;
 
     // Getters
     public String getJobNumber() {
         return jobNumber;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public String getJobName() {
@@ -53,6 +60,14 @@ public class JobRequest {
 
     public String getOffice() {
         return office;
+    }
+
+    public String getMaterialOrderStatus() {
+        return materialOrderStatus;
+    }
+
+    public String getMaterialArrivalStatus() {
+        return materialArrivalStatus;
     }
 
     // Setters
@@ -95,4 +110,17 @@ public class JobRequest {
     public void setOffice(String office) {
         this.office = office;
     }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setMaterialOrderStatus(String materialOrderStatus) {
+        this.materialOrderStatus = materialOrderStatus;
+    }
+
+    public void setMaterialArrivalStatus(String materialArrivalStatus) {
+        this.materialArrivalStatus = materialArrivalStatus;
+    }
+
 }

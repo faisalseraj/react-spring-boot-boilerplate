@@ -7,7 +7,6 @@ import com.kitchensaver.backend.DTO.UserResponse;
 import com.kitchensaver.backend.Repo.UserRepo;
 import com.kitchensaver.backend.Service.UserService;
 import com.kitchensaver.backend.model.Users;
-import com.kitchensaver.backend.util.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -108,7 +107,8 @@ public class UserController {
     }
 
     @PatchMapping("/updateProfile")
-    public ResponseEntity<UserResponse> updateProfile(@RequestBody UserRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<UserResponse> updateProfile(@RequestBody UserRequest request,
+            HttpServletRequest httpServletRequest) {
         // Calls the service to update the user and returns a response message
         try {
             UserResponse response = userService.updateProfile(request);
@@ -121,7 +121,8 @@ public class UserController {
     @PatchMapping("/updateEmployee")
     @PreAuthorize("hasAnyRole('ADMIN')")
 
-    public ResponseEntity<UserResponse> updateEmployee(@RequestBody UserRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<UserResponse> updateEmployee(@RequestBody UserRequest request,
+            HttpServletRequest httpServletRequest) {
         // Calls the service to update the user and returns a response message
         try {
             UserResponse response = userService.updateEmployee(request);
@@ -131,5 +132,16 @@ public class UserController {
         }
     }
 
-    
+    @GetMapping("/getSelf")
+    public ResponseEntity<UserResponse> getSelf(HttpServletRequest httpServletRequest) {
+        // Calls the service to get the user and returns a response message
+        String email = userService.getEmailFromToken(httpServletRequest);
+        try {
+            UserResponse response = userService.getSelf(email);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new UserResponse(e.getMessage(), ""));
+        }
+    }
+
 }

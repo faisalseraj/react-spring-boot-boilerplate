@@ -111,7 +111,7 @@ public class UserController {
             HttpServletRequest httpServletRequest) {
         // Calls the service to update the user and returns a response message
         try {
-            UserResponse response = userService.updateProfile(request);
+            UserResponse response = userService.updateProfile(request, httpServletRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new UserResponse(e.getMessage(), ""));

@@ -14,7 +14,7 @@ const UpdateProfile = () => {
   const [showModal, setShowModal] = useState(false);
 
   const validateInputs = () => {
-    if (!username || !email || !cell || !password) {
+    if (!username || !email || !cell) {
       setError("All fields are required.");
       return false;
     }
@@ -36,6 +36,7 @@ const UpdateProfile = () => {
     setSuccess("");
     if (validateInputs()) {
       try {
+        debugger
         const response = await apiService().updateProfile({
           username,
           email,
@@ -44,13 +45,24 @@ const UpdateProfile = () => {
           confirmPassword: password,
         });
 
-        setSuccess("Profile updated successfully!");
-        setUsername(response.user.username);
-        setEmail(response.user.email);
-        setCell(response.user.cell);
+       
+        if(response.user){
+          setSuccess("Profile updated successfully!");
+          setUsername(response.user.username);
+          setEmail(response.user.email);
+          setCell(response.user.cell);
+          localStorage.setItem("user", JSON.stringify(response.user));
+        }
+        if(response.token){
+          localStorage.setItem("authToken", response.token);  
+        }
+        
         setShowModal(false);
       } catch (error) {
         setError("Failed to update profile.");
+      }finally{
+        setShowModal(false);
+
       }
     }
   };
@@ -175,7 +187,7 @@ const UpdateProfile = () => {
               </div>
               <div className="modal-body">
                 <p className="confirmation-message">
-                  Your profile has been updated successfully!
+                  Are you sure you want to update your profile?
                 </p>
               </div>
               <div className="modal-footer">

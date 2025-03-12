@@ -242,10 +242,17 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    public UserResponse updateProfile(UserRequest request) {
+    public UserResponse updateProfile(UserRequest request, HttpServletRequest httpServletRequest) {
         try {
+            // Get the JWT token
+            String token = httpServletRequest.getHeader("Authorization").replace("Bearer ", "");
+
+            // Decode the JWT token to get the user email
+            DecodedJWT decodedJWT = JwtUtil.verifyToken(token);
+            String email = decodedJWT.getSubject();
+
             // Find the user by the email
-            Optional<Users> userOptional = userRepo.findByEmail(request.getEmail());
+            Optional<Users> userOptional = userRepo.findByEmail(email);
 
             // If the user is not found, return a message
             if (userOptional.isEmpty()) {
@@ -260,6 +267,12 @@ public class UserService implements UserDetailsService {
             if (request.getLastName() != null && !request.getLastName().isEmpty()) {
                 user.setLastName(request.getLastName());
             }
+            if (request.getUsername() != null && !request.getUsername().isEmpty()) {
+                user.setUsername(request.getUsername());
+            }
+            if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+                user.setEmail(request.getEmail());
+            }
             if (request.getPassword() != null && !request.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(request.getPassword()));
             }
@@ -269,11 +282,12 @@ public class UserService implements UserDetailsService {
 
             // Save the updated user
             userRepo.save(user);
-
+            user.setPassword("");
             // Generate a new JWT token
 
+            String newToken = JwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
             // Return the user response
-            return new UserResponse("User updated successfully", "", user);
+            return new UserResponse("User updated successfully", newToken, user);
 
         } catch (InvalidRequestException e) {
             return new UserResponse(e.getMessage(), "");
